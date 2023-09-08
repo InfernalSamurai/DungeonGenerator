@@ -1,6 +1,11 @@
 package ru.hei;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.hei.Dungeon.Block;
@@ -8,6 +13,83 @@ import static ru.hei.Dungeon.Block.AIR;
 import static ru.hei.Dungeon.Block.GROUND;
 
 final class DungeonTest {
+    private static Stream<TestCase> testCases() {
+        return Stream.of(
+                new TestCase(
+                        new Block[][]{
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR}
+                        },
+                        true
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND}
+                        },
+                        false
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {AIR, AIR, AIR, AIR, AIR, AIR, AIR}
+                        },
+                        true
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, AIR, AIR, AIR, AIR, AIR, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
+                                {AIR, AIR, AIR, AIR, AIR, AIR, GROUND}
+                        },
+                        false
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, GROUND, GROUND, GROUND, GROUND, GROUND, AIR},
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, AIR},
+                                {GROUND, AIR, AIR, AIR, AIR, AIR, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND}
+                        },
+                        true
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, GROUND, GROUND, GROUND, GROUND, GROUND, AIR},
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, GROUND},
+                                {GROUND, AIR, AIR, AIR, AIR, AIR, GROUND},
+                                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND}
+                        },
+                        false
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, AIR},
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, AIR},
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, AIR},
+                                {AIR, AIR, GROUND, GROUND, GROUND, AIR, AIR}
+                        },
+                        false
+                ),
+                new TestCase(
+                        new Block[][]{
+                                {AIR, AIR, GROUND, AIR, GROUND, AIR, AIR},
+                                {AIR, AIR, GROUND, AIR, GROUND, AIR, AIR},
+                                {AIR, AIR, GROUND, AIR, GROUND, AIR, AIR},
+                                {AIR, AIR, AIR, AIR, GROUND, AIR, AIR}
+                        },
+                        false
+                )
+        );
+    }
+
     @Test
     void invalidAreaByRowsFails() {
         //given
@@ -34,38 +116,18 @@ final class DungeonTest {
         assertThrows(IllegalStateException.class, () -> new Dungeon(area));
     }
 
-    @Test
-    public void open() {
+    @ParameterizedTest
+    @MethodSource("testCases")
+    void open(final @NotNull TestCase testCase) {
         //given
-        final Block[][] area = {
-                {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
-                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
-                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
-                {AIR, AIR, AIR, AIR, AIR, AIR, AIR}
-        };
-        final Dungeon dungeon = new Dungeon(area);
+        final Dungeon dungeon = new Dungeon(testCase.area);
         //when
         //then
-        assertTrue(dungeon.isOpen());
+        assertEquals(dungeon.isOpen, testCase.isOpen);
     }
 
     @Test
-    public void notOpen() {
-        //given
-        final Block[][] area = {
-                {AIR, AIR, AIR, AIR, AIR, AIR, GROUND},
-                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
-                {GROUND, GROUND, GROUND, GROUND, GROUND, GROUND, GROUND},
-                {AIR, AIR, AIR, AIR, AIR, AIR, GROUND}
-        };
-        final Dungeon dungeon = new Dungeon(area);
-        //when
-        //then
-        assertFalse(dungeon.isOpen());
-    }
-
-    @Test
-    public void comparable() {
+    void comparable() {
         //given
         final Block[][] area1 = {
                 {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
@@ -87,7 +149,7 @@ final class DungeonTest {
     }
 
     @Test
-    public void notComparable() {
+    void notComparable() {
         //given
         final Block[][] area1 = {
                 {AIR, AIR, AIR, AIR, AIR, AIR, AIR},
@@ -106,5 +168,20 @@ final class DungeonTest {
         //when
         //then
         assertFalse(dungeon1.isComparable(dungeon2));
+    }
+
+    private static final class TestCase {
+        private final @NotNull Block[][] area;
+        private final boolean isOpen;
+
+        public TestCase(final @NotNull Block[][] area, final boolean isOpen) {
+            this.area = area;
+            this.isOpen = isOpen;
+        }
+
+        @Override
+        public String toString() {
+            return "TestCase: isOpen=" + isOpen;
+        }
     }
 }

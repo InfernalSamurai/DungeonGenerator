@@ -19,7 +19,7 @@ public final class DungeonPool {
 
     public @NotNull List<Dungeon> createXSequence(int length) {
         final List<Dungeon> openDungeons = dungeons.stream()
-                .filter(Dungeon::isOpen)
+                .filter(dungeon -> dungeon.isOpen)
                 .collect(Collectors.toList());
         if (openDungeons.isEmpty()) {
             throw new IllegalStateException("No open dungeons available");
